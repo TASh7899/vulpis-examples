@@ -1,25 +1,7 @@
--- =========================================================
--- 1. CONFIG
--- =========================================================
 function Window()
 	return { title = "Vulpis Typography One-Screen", width = 800, height = 600, resizable = true }
 end
 
--- Dummy registration to test variant logic (Update paths if you have real files)
-register_font_family({
-	["demo_font"] = {
-		path = "assets/fonts/Roboto-Regular.ttf",
-		size = 20,
-		variants = {
-			["bold"] = { path = "assets/fonts/Roboto-Bold.ttf", size = 20 },
-			["italics"] = { path = "assets/fonts/Roboto-Italic.ttf" },
-		},
-	},
-})
-
--- =========================================================
--- 2. HELPERS
--- =========================================================
 local function SectionTitle(text)
 	return { type = "text", text = text, style = { fontSize = 14, color = "#888888", marginBottom = 5 } }
 end
@@ -36,9 +18,6 @@ local function Label(text, styleOverride)
 	return { type = "text", text = text, style = s }
 end
 
--- =========================================================
--- 3. MAIN APP
--- =========================================================
 function App()
 	return {
 		type = "vbox",
