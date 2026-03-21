@@ -12,16 +12,11 @@ local function SidebarItem(label, id, icon, isCollapsed)
 	local bgColor = isActive and "#3B82F6" or (isHovered and "#2D2D3A" or "transparent")
 
 	local itemChildren = {}
-
-	-- Icon wrapper to stabilize centering
+	-- Always pack the icon container
 	table.insert(
 		itemChildren,
 		elements.HBox({
-			style = {
-				w = 40,
-				justifyContent = "center",
-				alignItems = "center",
-			},
+			style = { w = 40, justifyContent = "center", alignItems = "center" },
 			children = {
 				elements.Text({
 					text = icon,
@@ -31,6 +26,7 @@ local function SidebarItem(label, id, icon, isCollapsed)
 		})
 	)
 
+	-- Only add text if expanded
 	if not isCollapsed then
 		table.insert(
 			itemChildren,
@@ -80,8 +76,8 @@ local function SettingsCard(tab, index, title, desc)
 					elements.Button({
 						style = { padding = 5, BGColor = "#EF4444" },
 						onClick = function()
-							local count = useState(stateKey, 3)
-							setState(stateKey, count - 1)
+							local currentVal = useState(stateKey, 2)
+							setState(stateKey, currentVal - 1)
 						end,
 						children = { elements.Text({ text = "Delete", style = { color = "#FFF", fontSize = 12 } }) },
 					}),
@@ -98,35 +94,32 @@ end
 -- 3. Main Application Layout
 function App()
 	local activeTab = useState("active_tab", "Dashboard")
-	local isCollapsed = useState("sidebar_collapsed", false)
+	local isCollapsed = useState("sidebar_collapsed", true)
 	local showModal = useState("show_modal", false)
 
-	local counts = {
-		Dashboard = useState("Dashboard_count", 2),
-		Projects = useState("Projects_count", 4),
-		Analytics = useState("Analytics_count", 3),
-		Settings = useState("Settings_count", 1),
-	}
+	-- Fetch states using unique keys to ensure they persist across renders
+	local dashboardCount = useState("Dashboard_count", 2)
+	local projectsCount = useState("Projects_count", 2)
+	local analyticsCount = useState("Analytics_count", 2)
+	local settingsCount = useState("Settings_count", 2)
 
+	local counts =
+		{ Dashboard = dashboardCount, Projects = projectsCount, Analytics = analyticsCount, Settings = settingsCount }
 	local currentCount = counts[activeTab] or 0
 	local sidebarWidth = isCollapsed and 60 or 260
 
-	-- Header Logic (Contains the toggle button)
+	-- Pack Sidebar Header
 	local headerChildren = {}
 	if not isCollapsed then
 		table.insert(
 			headerChildren,
-			elements.Text({
-				text = "VULPIS",
-				style = { color = "#FFFFFF", fontSize = 24, paddingLeft = 10 },
-			})
+			elements.Text({ text = "VULPIS", style = { color = "#FFFFFF", fontSize = 24, paddingLeft = 10 } })
 		)
 	end
 	table.insert(
 		headerChildren,
 		elements.Button({
 			style = { w = 36, h = 36, BGColor = "transparent", justifyContent = "center", alignItems = "center" },
-			focusable = true,
 			onClick = function()
 				setState("sidebar_collapsed", not isCollapsed)
 			end,
@@ -136,225 +129,172 @@ function App()
 		})
 	)
 
-	-- Generate Content Cards
-	local cards = {}
-	local tabDescriptions = {
-		Dashboard = "System health monitoring and active engine instances.",
-		Projects = "Configuration for C++ and Lua source directories.",
-		Analytics = "Real-time frame timings and memory usage tracking.",
-		Settings = "Global engine preferences and rendering toggles.",
-	}
-
+	-- Build Card List
+	local cardElements = {}
 	for i = 1, currentCount do
-		table.insert(cards, SettingsCard(activeTab, i, activeTab .. " Item #" .. i, tabDescriptions[activeTab]))
+		table.insert(
+			cardElements,
+			SettingsCard(activeTab, i, activeTab .. " Item #" .. i, "Active section: " .. activeTab)
+		)
 	end
 
-	local appRoot = elements.HBox({
-		style = { w = "100%", h = "100%", BGColor = "#18181B" },
-		children = {
-			-- LEFT: SIDEBAR
-			elements.VBox({
-				style = {
-					w = sidebarWidth,
-					h = "100%",
-					BGColor = "#1F1F22",
-					padding = 10,
-					justifyContent = isCollapsed and "start" or "space-between",
-					flexShrink = 0,
-				},
-				children = {
-					elements.VBox({
-						style = { w = "100%" },
-						children = {
-							-- Header/Toggle Area
-							elements.HBox({
-								style = {
-									w = "100%",
-									justifyContent = isCollapsed and "center" or "space-between",
-									alignItems = "center",
-									marginBottom = isCollapsed and 0 or 40,
-								},
-								children = headerChildren,
-							}),
+	-- ┏╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍┓
+	-- ╏ BUILD PACKED ROOT CHILDREN TABLE    ╏
+	-- ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍┛
+	local rootChildren = {}
 
-								-- ONLY SHOW BUTTONS IF NOT COLLAPSED
-							not isCollapsed and SidebarItem("Dashboard", "Dashboard", "D", isCollapsed) or nil,
-							not isCollapsed and SidebarItem("Projects", "Projects", "P", isCollapsed) or nil,
-							not isCollapsed and SidebarItem("Analytics", "Analytics", "A", isCollapsed) or nil,
-							not isCollapsed and SidebarItem("Settings", "Settings", "S", isCollapsed) or nil,
-						},
-					}),
-
-							-- ONLY SHOW PROFILE IF NOT COLLAPSED
-					not isCollapsed
-							and elements.HBox({
-								style = {
-									w = "100%",
-									padding = 12,
-									BGColor = "#2D2D3A",
-									alignItems = "center",
-									justifyContent = "start",
-								},
-								children = {
-									elements.HBox({
-										style = {
-											w = 36,
-											h = 36,
-											BGColor = "#3B82F6",
-											justifyContent = "center",
-											alignItems = "center",
-											marginRight = 12,
-											flexShrink = 0,
-										},
-										children = {
-											elements.Text({ text = "TG", style = { color = "#FFF", fontSize = 12 } }),
-										},
-									}),
-									elements.VBox({
-										style = { flexShrink = 1 },
-										children = {
-											elements.Text({
-												text = "Tanush Gupta",
-												style = { color = "#FFFFFF", fontSize = 14 },
-											}),
-											elements.Text({
-												text = "Dev",
-												style = { color = "#A1A1AA", fontSize = 11 },
-											}),
-										},
-									}),
-								},
-							})
-						or nil,
-				},
-			}),
-
-			-- RIGHT: MAIN CONTENT AREA
-			elements.VBox({
-				style = {
-					flexGrow = 1,
-					flexShrink = 1,
-					w = "100%",
-					minWidth = 0,
-					h = "100%",
-					padding = 40,
-					overflow = "scroll",
-				},
-				children = {
-					elements.HBox({
-						style = {
-							w = "100%",
-							justifyContent = "space-between",
-							alignItems = "center",
-							marginBottom = 40,
-							flexShrink = 0,
-						},
-						children = {
-							elements.Text({ text = activeTab, style = { color = "#FFFFFF", fontSize = 32 } }),
-							elements.Button({
-								style = {
-									BGColor = "#3B82F6",
-									paddingLeft = 20,
-									paddingRight = 20,
-									paddingTop = 10,
-									paddingBottom = 10,
-								},
-								onClick = function()
-									setState("show_modal", true)
-								end,
-								children = {
-									elements.Text({
-										text = "+ Add " .. activeTab .. " Card",
-										style = { color = "#FFF" },
-									}),
-								},
-							}),
-						},
-					}),
-					elements.VBox({ style = { w = "100%" }, children = cards }),
-				},
-			}),
-		},
-	})
-
-	-- MODAL OVERLAY
-	if showModal then
-		return elements.Box({
-			style = { w = "100%", h = "100%" },
+	-- 1. Main Content always at index 1
+	table.insert(
+		rootChildren,
+		elements.VBox({
+			style = { w = "100%", h = "100%", padding = 40, paddingLeft = 80, overflow = "scroll" },
 			children = {
-				appRoot,
-				elements.VBox({
+				elements.HBox({
 					style = {
-						position = "absolute",
-						left = 0,
-						top = 0,
 						w = "100%",
-						h = "100%",
-						BGColor = "#000000",
-						opacity = 0.8,
-						justifyContent = "center",
+						justifyContent = "space-between",
 						alignItems = "center",
+						marginBottom = 40,
+						flexShrink = 0,
 					},
 					children = {
-						elements.VBox({
-							style = { w = 450, padding = 30, BGColor = "#1F1F22" },
-							children = {
-								elements.Text({
-									text = "Add New " .. activeTab .. " Entry",
-									style = { color = "#FFFFFF", fontSize = 24, marginBottom = 15 },
-								}),
-								elements.Text({
-									text = "This card will only be added to the " .. activeTab .. " section.",
-									style = {
-										color = "#A1A1AA",
-										fontSize = 14,
-										wordWrap = true,
-										minWidth = 0,
-										marginBottom = 30,
-									},
-								}),
-								elements.HBox({
-									style = { w = "100%", justifyContent = "end" },
-									children = {
-										elements.Button({
-											style = {
-												padding = 10,
-												paddingLeft = 20,
-												paddingRight = 20,
-												BGColor = "#3F3F46",
-											},
-											onClick = function()
-												setState("show_modal", false)
-											end,
-											children = {
-												elements.Text({ text = "Cancel", style = { color = "#FFF" } }),
-											},
-										}),
-										elements.Box({ style = { w = 15 } }),
-										elements.Button({
-											style = {
-												padding = 10,
-												paddingLeft = 20,
-												paddingRight = 20,
-												BGColor = "#3B82F6",
-											},
-											onClick = function()
-												setState(activeTab .. "_count", currentCount + 1)
-												setState("show_modal", false)
-											end,
-											children = {
-												elements.Text({ text = "Confirm", style = { color = "#FFF" } }),
-											},
-										}),
-									},
-								}),
+						elements.Text({ text = activeTab, style = { color = "#FFFFFF", fontSize = 32 } }),
+						elements.Button({
+							style = {
+								BGColor = "#3B82F6",
+								paddingLeft = 20,
+								paddingRight = 20,
+								paddingTop = 10,
+								paddingBottom = 10,
 							},
+							onClick = function()
+								setState("show_modal", true)
+							end,
+							children = { elements.Text({ text = "+ Add " .. activeTab, style = { color = "#FFF" } }) },
 						}),
 					},
 				}),
+				elements.VBox({ style = { w = "100%" }, children = cardElements }),
 			},
 		})
+	)
+
+	-- 2. Dull Overlay (only inserted if open - no nil holes)
+	if not isCollapsed then
+		table.insert(
+			rootChildren,
+			elements.Button({
+				style = {
+					position = "absolute",
+					left = 0,
+					top = 0,
+					w = "100%",
+					h = "100%",
+					BGColor = "#000000",
+					opacity = 0.5,
+				},
+				onClick = function()
+					setState("sidebar_collapsed", true)
+				end,
+				children = {},
+			})
+		)
 	end
 
-	return appRoot
+	-- 3. Sidebar (Always packed next)
+	local sidebarInnerChildren = {}
+	table.insert(
+		sidebarInnerChildren,
+		elements.HBox({
+			style = {
+				w = "100%",
+				justifyContent = isCollapsed and "center" or "space-between",
+				alignItems = "center",
+				marginBottom = isCollapsed and 0 or 40,
+			},
+			children = headerChildren,
+		})
+	)
+
+	if not isCollapsed then
+		table.insert(sidebarInnerChildren, SidebarItem("Dashboard", "Dashboard", "D", isCollapsed))
+		table.insert(sidebarInnerChildren, SidebarItem("Projects", "Projects", "P", isCollapsed))
+		table.insert(sidebarInnerChildren, SidebarItem("Analytics", "Analytics", "A", isCollapsed))
+		table.insert(sidebarInnerChildren, SidebarItem("Settings", "Settings", "S", isCollapsed))
+	end
+
+	table.insert(
+		rootChildren,
+		elements.VBox({
+			style = {
+				position = "absolute",
+				left = 0,
+				top = 0,
+				w = sidebarWidth,
+				h = "100%",
+				BGColor = "#1F1F22",
+				padding = 10,
+				borderRightWidth = 1,
+				borderRightColor = "#333333",
+			},
+			children = sidebarInnerChildren,
+		})
+	)
+
+	-- 4. Modal Overlay (Only inserted if active)
+	if showModal then
+		table.insert(
+			rootChildren,
+			elements.VBox({
+				style = {
+					position = "absolute",
+					left = 0,
+					top = 0,
+					w = "100%",
+					h = "100%",
+					BGColor = "#000000",
+					opacity = 0.8,
+					justifyContent = "center",
+					alignItems = "center",
+				},
+				children = {
+					elements.VBox({
+						style = { w = 450, padding = 30, BGColor = "#1F1F22" },
+						children = {
+							elements.Text({
+								text = "Add Entry to " .. activeTab,
+								style = { color = "#FFFFFF", fontSize = 24, marginBottom = 15 },
+							}),
+							elements.HBox({
+								style = { w = "100%", justifyContent = "end" },
+								children = {
+									elements.Button({
+										style = { padding = 10, paddingLeft = 20, BGColor = "#3F3F46" },
+										onClick = function()
+											setState("show_modal", false)
+										end,
+										children = { elements.Text({ text = "Cancel", style = { color = "#FFF" } }) },
+									}),
+									elements.Box({ style = { w = 15 } }),
+									elements.Button({
+										style = { padding = 10, paddingLeft = 20, BGColor = "#3B82F6" },
+										onClick = function()
+											setState(activeTab .. "_count", currentCount + 1)
+											setState("show_modal", false)
+										end,
+										children = { elements.Text({ text = "Confirm", style = { color = "#FFF" } }) },
+									}),
+								},
+							}),
+						},
+					}),
+				},
+			})
+		)
+	end
+
+	return elements.Box({
+		style = { w = "100%", h = "100%", BGColor = "#18181B" },
+		children = rootChildren, -- Always packed and continuous!
+	})
 end
