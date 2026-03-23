@@ -47,7 +47,9 @@ local function SidebarItem(label, id, icon, isCollapsed)
 			justifyContent = "start",
 			alignItems = "center",
 			BGColor = bgColor,
-			marginBottom = 4,
+			marginBottom = 6,
+			-- AESTHETIC UPDATE: Rounded sidebar pills
+			borderRadius = 8,
 		},
 		onMouseEnter = function()
 			setState(id .. "_hover", true)
@@ -67,14 +69,33 @@ local function SettingsCard(tab, index, title, desc)
 	local stateKey = tab .. "_count"
 	return elements.VBox({
 		key = tab .. "_card_" .. index,
-		style = { w = "100%", padding = 24, BGColor = "#27272A", marginBottom = 16, flexShrink = 0 },
+		style = {
+			w = "100%",
+			padding = 24,
+			BGColor = "#27272A",
+			marginBottom = 16,
+			flexShrink = 0,
+			-- AESTHETIC UPDATE: Modern cards with smooth radii and subtle borders
+			borderRadius = 12,
+			borderWidth = 1,
+			borderColor = "#3F3F46",
+		},
 		children = {
 			elements.HBox({
 				style = { w = "100%", justifyContent = "space-between", alignItems = "center", marginBottom = 8 },
 				children = {
 					elements.Text({ text = title, style = { color = "#FFFFFF", fontSize = 18 } }),
 					elements.Button({
-						style = { padding = 5, BGColor = "#EF4444" },
+						style = {
+							padding = 6,
+							paddingLeft = 12,
+							paddingRight = 12,
+							BGColor = "#EF4444",
+							-- AESTHETIC UPDATE: Softened danger button
+							borderRadius = 6,
+							borderWidth = 1,
+							borderColor = "#F87171", -- Lighter red border for depth
+						},
 						onClick = function()
 							local currentVal = useState(stateKey, 2)
 							setState(stateKey, currentVal - 1)
@@ -94,7 +115,7 @@ end
 -- 3. Main Application Layout
 function App()
 	local activeTab = useState("active_tab", "Dashboard")
-	local isCollapsed = useState("sidebar_collapsed", true)
+	local isCollapsed = useState("sidebar_collapsed", false)
 	local showModal = useState("show_modal", false)
 
 	-- Fetch states using unique keys to ensure they persist across renders
@@ -106,7 +127,7 @@ function App()
 	local counts =
 		{ Dashboard = dashboardCount, Projects = projectsCount, Analytics = analyticsCount, Settings = settingsCount }
 	local currentCount = counts[activeTab] or 0
-	local sidebarWidth = isCollapsed and 60 or 260
+	local sidebarWidth = isCollapsed and 70 or 260
 
 	-- Pack Sidebar Header
 	local headerChildren = {}
@@ -119,12 +140,22 @@ function App()
 	table.insert(
 		headerChildren,
 		elements.Button({
-			style = { w = 36, h = 36, BGColor = "transparent", justifyContent = "center", alignItems = "center" },
+			style = {
+				w = 36,
+				h = 36,
+				BGColor = "#27272A",
+				justifyContent = "center",
+				alignItems = "center",
+				-- AESTHETIC UPDATE: Circular toggle button
+				borderRadius = 18,
+				borderWidth = 1,
+				borderColor = "#3F3F46",
+			},
 			onClick = function()
 				setState("sidebar_collapsed", not isCollapsed)
 			end,
 			children = {
-				elements.Text({ text = isCollapsed and ">" or "×", style = { color = "#A1A1AA", fontSize = 28 } }),
+				elements.Text({ text = isCollapsed and ">" or "×", style = { color = "#A1A1AA", fontSize = 20 } }),
 			},
 		})
 	)
@@ -138,9 +169,6 @@ function App()
 		)
 	end
 
-	-- ┏╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍┓
-	-- ╏ BUILD PACKED ROOT CHILDREN TABLE    ╏
-	-- ┗╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍╍┛
 	local rootChildren = {}
 
 	-- 1. Main Content always at index 1
@@ -166,6 +194,10 @@ function App()
 								paddingRight = 20,
 								paddingTop = 10,
 								paddingBottom = 10,
+								-- AESTHETIC UPDATE: Premium primary button look
+								borderRadius = 8,
+								borderWidth = 1,
+								borderColor = "#60A5FA",
 							},
 							onClick = function()
 								setState("show_modal", true)
@@ -179,7 +211,7 @@ function App()
 		})
 	)
 
-	-- 2. Dull Overlay (only inserted if open - no nil holes)
+	-- 2. Dull Overlay
 	if not isCollapsed then
 		table.insert(
 			rootChildren,
@@ -210,7 +242,7 @@ function App()
 				w = "100%",
 				justifyContent = isCollapsed and "center" or "space-between",
 				alignItems = "center",
-				marginBottom = isCollapsed and 0 or 40,
+				marginBottom = isCollapsed and 20 or 40,
 			},
 			children = headerChildren,
 		})
@@ -233,9 +265,10 @@ function App()
 				w = sidebarWidth,
 				h = "100%",
 				BGColor = "#1F1F22",
-				padding = 10,
-				borderRightWidth = 1,
-				borderRightColor = "#333333",
+				padding = 15,
+				-- AESTHETIC UPDATE: Using the new universal border width mapped to the engine
+				borderWidth = 1,
+				borderColor = "#333333",
 			},
 			children = sidebarInnerChildren,
 		})
@@ -259,17 +292,34 @@ function App()
 				},
 				children = {
 					elements.VBox({
-						style = { w = 450, padding = 30, BGColor = "#1F1F22" },
+						style = {
+							w = 450,
+							padding = 30,
+							BGColor = "#1F1F22",
+							-- AESTHETIC UPDATE: Floating dialogue box
+							borderRadius = 16,
+							borderWidth = 1,
+							borderColor = "#3F3F46",
+						},
 						children = {
 							elements.Text({
 								text = "Add Entry to " .. activeTab,
-								style = { color = "#FFFFFF", fontSize = 24, marginBottom = 15 },
+								style = { color = "#FFFFFF", fontSize = 24, marginBottom = 20 },
 							}),
 							elements.HBox({
 								style = { w = "100%", justifyContent = "end" },
 								children = {
 									elements.Button({
-										style = { padding = 10, paddingLeft = 20, BGColor = "#3F3F46" },
+										style = {
+											padding = 10,
+											paddingLeft = 20,
+											paddingRight = 20,
+											BGColor = "#3F3F46",
+											-- AESTHETIC UPDATE
+											borderRadius = 6,
+											borderWidth = 1,
+											borderColor = "#52525B",
+										},
 										onClick = function()
 											setState("show_modal", false)
 										end,
@@ -277,7 +327,16 @@ function App()
 									}),
 									elements.Box({ style = { w = 15 } }),
 									elements.Button({
-										style = { padding = 10, paddingLeft = 20, BGColor = "#3B82F6" },
+										style = {
+											padding = 10,
+											paddingLeft = 20,
+											paddingRight = 20,
+											BGColor = "#3B82F6",
+											-- AESTHETIC UPDATE
+											borderRadius = 6,
+											borderWidth = 1,
+											borderColor = "#60A5FA",
+										},
 										onClick = function()
 											setState(activeTab .. "_count", currentCount + 1)
 											setState("show_modal", false)
@@ -295,6 +354,8 @@ function App()
 
 	return elements.Box({
 		style = { w = "100%", h = "100%", BGColor = "#18181B" },
-		children = rootChildren, -- Always packed and continuous!
+		children = rootChildren,
 	})
 end
+
+return App()
