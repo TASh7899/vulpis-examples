@@ -357,7 +357,7 @@ local function NetworkScreen()
 							style = { BGColor = "#89b4fa" },
 							onClick = function()
 								setState("reqStatus", "Loading...")
-								vulpis.httpGet("https://catfact.ninja/fact", function(res)
+								vulpis.fetch("https://catfact.ninja/fact", function(res)
 									if res.status == 200 then
 										setState("reqStatus", "Success (" .. res.status .. ")")
 										setState("reqData", json.decode(res.body).fact)
