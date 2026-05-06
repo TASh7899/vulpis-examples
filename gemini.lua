@@ -38,7 +38,18 @@ function Gemini:chat(messages, callback)
 		})
 	end
 
-	local okEncode, payload = pcall(json.encode, { contents = apiContents })
+	local requestBody = {
+		system_instruction = {
+			parts = {
+				{
+					text = "You are a helpful assistant. You must provide all of your answers in plain, raw text. Absolutely do not use any Markdown formatting, bolding, asterisks, bullet points, or code blocks",
+				},
+			},
+		},
+		contents = apiContents,
+	}
+
+	local okEncode, payload = pcall(json.encode, requestBody)
 
 	if not okEncode then
 		callback(nil, "System Error: Failed to build JSON payload.")
@@ -80,7 +91,7 @@ end
 -------------------------------------------------------------------------------
 -- 2. STATE MANAGEMENT
 -------------------------------------------------------------------------------
-local client = Gemini.new("YOUR_ACTUAL_API_KEY_HERE")
+local client = Gemini.new("AIzaSyDMJ3ND6-e5vAyd3is7ma4nbRKUimDZanY")
 
 local useAppStore = store.create(function(get, set)
 	return {
@@ -128,12 +139,10 @@ local function submitPrompt(state, overrideText)
 		state.setUserInput("") -- Clear input box instantly
 		state.setLoading(true)
 
-		-- Build the history payload to send to the API
 		local apiHistory = {}
 		for _, m in ipairs(state.messages) do
 			table.insert(apiHistory, m)
 		end
-		table.insert(apiHistory, { role = "user", text = cleanInput })
 
 		client:chat(apiHistory, function(response, err)
 			if err then
@@ -145,7 +154,6 @@ local function submitPrompt(state, overrideText)
 		end)
 	end
 end
-
 -------------------------------------------------------------------------------
 -- 3. UI RENDERER
 -------------------------------------------------------------------------------
@@ -276,7 +284,7 @@ function App()
 										key = "user_msg_" .. i,
 										text = msg.text,
 										allowSelection = true,
-										style = { FontColor = colors.primary_text, fontSize = 15, wordWrap = true },
+										style = { color = colors.primary_text, fontSize = 15, wordWrap = true },
 									}),
 								},
 							}),
@@ -306,7 +314,7 @@ function App()
 										text = msg.text,
 										allowSelection = true,
 										style = {
-											FontColor = colors.text_main,
+											color = colors.text_main,
 											fontSize = 15,
 											wordWrap = true,
 											lineHeight = 1.4,
@@ -355,6 +363,7 @@ function App()
 							children = {
 								elements.Text({
 									text = state.errorMsg,
+									allowSelection = true,
 									style = {
 										color = colors.error_text,
 										fontSize = 14,
