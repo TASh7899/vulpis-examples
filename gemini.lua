@@ -91,7 +91,7 @@ end
 -------------------------------------------------------------------------------
 -- 2. STATE MANAGEMENT
 -------------------------------------------------------------------------------
-local client = Gemini.new("AIzaSyDMJ3ND6-e5vAyd3is7ma4nbRKUimDZanY")
+local client = Gemini.new("YOUR_ACTUAL_API_KEY_HERE")
 
 local useAppStore = store.create(function(get, set)
 	return {
@@ -139,10 +139,12 @@ local function submitPrompt(state, overrideText)
 		state.setUserInput("") -- Clear input box instantly
 		state.setLoading(true)
 
+		-- Build the history payload to send to the API
 		local apiHistory = {}
 		for _, m in ipairs(state.messages) do
 			table.insert(apiHistory, m)
 		end
+		-- Removed the duplicate table.insert here
 
 		client:chat(apiHistory, function(response, err)
 			if err then
